@@ -103,9 +103,10 @@ func main() {
 				var mensaje []byte
 
 				//Prob del 10% de no estar disponible
-				if disponibilidad <= 9 {
+				if disponibilidad <= 90 {
 					mensaje = []byte("NO")
 					_, err = connection.WriteToUDP(mensaje, addr1)
+					_, err = connection.WriteToUDP(mensaje, addr2)
 
 				} else {
 
