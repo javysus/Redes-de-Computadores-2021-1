@@ -6,9 +6,11 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func jugadaBot() (jugada string) {
+	rand.Seed(time.Now().UnixNano())
 	opcion := rand.Intn(3)
 
 	if opcion == 0 {
@@ -93,6 +95,7 @@ func main() {
 			} else {
 
 				//Abrir puerto de partida
+				rand.Seed(time.Now().UnixNano())
 				puerto_partida := rand.Intn(41) + 10 //Puertos de 50010 al 50050
 				port := ":500" + strconv.Itoa(puerto_partida)
 				s, err := net.ResolveUDPAddr("udp4", port)

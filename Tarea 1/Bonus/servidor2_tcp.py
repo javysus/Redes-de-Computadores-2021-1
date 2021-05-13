@@ -26,11 +26,10 @@ def juegoCachipun(clienteSocket, ip, puerto):
         #Se recibe la jugada inicial
         jug_inicial = clienteSocket.recv(2048).decode()
         #Se solicita jugada del servidor Cachipun
-        msg = "JUGAR"
-        clientePartida.send(msg.encode())
-        print("[*] Solicitando jugada a servidor Cachipun")
+        clientePartida.send(jug_inicial.encode())
+        print("[*] Esperando jugada...")
         bot_jug = clientePartida.recvfrom(2048)[0].decode()
-        print("[*] El bot juega ", bot_jug)
+        print("[*] El contrincante juega ", bot_jug)
 
         if(jug_inicial == bot_jug): #Empate
             resultado = "EMPATE"
@@ -54,16 +53,14 @@ def juegoCachipun(clienteSocket, ip, puerto):
         clienteSocket.send(msg_cliente.encode())
 
     #Avisar a Cachipun de que la partida termino
-    #Pregunta, avisar a cliente tambien de que se cerro este puerto?
     msg = "FIN"
-    print("[*] Partida terminada")
     clientePartida.send(msg.encode())
     clientePartida.close()
     print("[*] Se cierra conexión con servidor Cachipún en ", puerto)
 
 
 #Servidor
-serverPort = 50001
+serverPort = 50003
 
 serverSocket = skt.socket(skt.AF_INET, skt.SOCK_STREAM) #AF_INET: IPV4, SOCK_STREAM: TCP
 
@@ -81,6 +78,7 @@ serverPortUDP = 50002
 clientCachipun = skt.socket(skt.AF_INET, skt.SOCK_DGRAM)
 clientCachipun.connect((serverAddr, serverPortUDP))
 
+print(clientCachipun)
 msg = clientSocket.recv(2048).decode()
 
 while(msg != "2"):
@@ -89,6 +87,7 @@ while(msg != "2"):
     disp_Cachipun = clientCachipun.recvfrom(2048)[0]
 
     respuesta = disp_Cachipun.decode().split('|')
+    print(respuesta)
 
     print("[*] Disponibilidad de servidor Cachipun " + disp_Cachipun.decode())
     clientSocket.send(disp_Cachipun) #Enviar a cliente la disponibilidad
@@ -105,18 +104,11 @@ while(msg != "2"):
 
     msg = clientSocket.recv(2048).decode()
 
-clientCachipun.send(msg.encode())
-msg = clientCachipun.recv(2048).decode()
+clientCachipun.close()
+mensaje = "OK"
+clientSocket.send(mensaje.encode())
+clientSocket.close()
+print("[*] Se cierra conexión con cliente en ", serverPort)
 
-if(msg=="OK"):
-    clientCachipun.close()
-    print("[*] Se cierra conexión con servidor Cachipún en ",serverPortUDP)
-
-    mensaje = "OK"
-    clientSocket.send(mensaje.encode())
-    clientSocket.close()
-    print("[*] Se cierra conexión con cliente en ", serverPort)
-else:
-    print("[*] No se ha podido cerrar la conexión con servidor Cachipún")
 
 

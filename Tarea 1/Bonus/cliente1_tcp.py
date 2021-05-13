@@ -23,11 +23,11 @@ else:
 
 while(run):
     socketClient.send(toSend.encode())
+    print("[*] Buscando rival...")
     response = socketClient.recv(2048).decode()[0:2]
-    print(response)
 
     if(response=='OK'):
-
+        print("[*] Rival encontrado")
         jugar = True
         print("El juego ha comenzado. El primer jugador en ganar tres partidas gana.\n¿Piedra, papel o tijera?\n1. Piedra\n2. Papel\n3. Tijera")
         
@@ -38,10 +38,10 @@ while(run):
 
             print("[*] Usted jugó ", jugada)
 
-            #Recibir jugada del bot
-
+            #Recibir jugada del otro jugador
+            print("[*] Esperando jugada del contrincante...")
             resultados_part = socketClient.recv(2048).decode().split('|')
-            print("[*] El bot jugó ", resultados_part[0])
+            print("[*] El jugador contrincante jugó ", resultados_part[0])
 
             if(resultados_part[1]=='GANAR'):
                 print("[*] Usted ganó el turno")
@@ -50,7 +50,7 @@ while(run):
             else:
                 print("[*] Hubo un empate en este turno")
 
-            print("[*] MARCADOR: Jugador ", resultados_part[2], "| Bot ",resultados_part[3])
+            print("[*] MARCADOR: Usted ", resultados_part[2], "| Contrincante ",resultados_part[3])
 
             if(resultados_part[4]=='WIN'):
                 print(["[*] ¡¡¡Usted ha ganado la partida!!!"])
@@ -69,12 +69,12 @@ while(run):
 
     if (toSend=='2'):
         run = False
-        socketClient.send(toSend.encode())
+        socketClient.send(toSend.encode()) #Avisar de termino a servidor intermedio
         #Terminar ejecucion de servidores
     else:
         run = True
 
-msg = socketClient.recv(2048).decode()
+msg = socketClient.recv(2048).decode() #Recibir OK
 
 if(msg=="OK"):
     print("¡Vuelve pronto!")

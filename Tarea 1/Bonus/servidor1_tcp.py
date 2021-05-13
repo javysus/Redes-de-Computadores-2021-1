@@ -26,11 +26,10 @@ def juegoCachipun(clienteSocket, ip, puerto):
         #Se recibe la jugada inicial
         jug_inicial = clienteSocket.recv(2048).decode()
         #Se solicita jugada del servidor Cachipun
-        msg = "JUGAR"
-        clientePartida.send(msg.encode())
-        print("[*] Solicitando jugada a servidor Cachipun")
+        clientePartida.send(jug_inicial.encode())
+        print("[*] Esperando jugada...")
         bot_jug = clientePartida.recvfrom(2048)[0].decode()
-        print("[*] El bot juega ", bot_jug)
+        print("[*] El contrincante juega ", bot_jug)
 
         if(jug_inicial == bot_jug): #Empate
             resultado = "EMPATE"
@@ -56,7 +55,6 @@ def juegoCachipun(clienteSocket, ip, puerto):
     #Avisar a Cachipun de que la partida termino
     #Pregunta, avisar a cliente tambien de que se cerro este puerto?
     msg = "FIN"
-    print("[*] Partida terminada")
     clientePartida.send(msg.encode())
     clientePartida.close()
     print("[*] Se cierra conexión con servidor Cachipún en ", puerto)
@@ -81,6 +79,7 @@ serverPortUDP = 50002
 clientCachipun = skt.socket(skt.AF_INET, skt.SOCK_DGRAM)
 clientCachipun.connect((serverAddr, serverPortUDP))
 
+print(clientCachipun)
 msg = clientSocket.recv(2048).decode()
 
 while(msg != "2"):
@@ -89,6 +88,7 @@ while(msg != "2"):
     disp_Cachipun = clientCachipun.recvfrom(2048)[0]
 
     respuesta = disp_Cachipun.decode().split('|')
+    print(respuesta)
 
     print("[*] Disponibilidad de servidor Cachipun " + disp_Cachipun.decode())
     clientSocket.send(disp_Cachipun) #Enviar a cliente la disponibilidad
