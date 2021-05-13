@@ -9,19 +9,7 @@ import (
 	"time"
 )
 
-func jugadaBot() (jugada string) {
-	opcion := rand.Intn(3)
-
-	if opcion == 0 {
-		jugada = "Piedra"
-	} else if opcion == 1 {
-		jugada = "Papel"
-	} else {
-		jugada = "Tijera"
-	}
-	return
-}
-
+//Se realiza y envían las jugadas en el puerto de partida
 func puertoPartida(connection_partida *net.UDPConn) {
 	BUFFER := 1024
 	buffer1 := make([]byte, BUFFER)
@@ -31,6 +19,7 @@ func puertoPartida(connection_partida *net.UDPConn) {
 
 		//Leer primera jugada
 		n1, addr1, err := connection_partida.ReadFromUDP(buffer1)
+		//Leer segunda jugada
 		n2, addr2, err := connection_partida.ReadFromUDP(buffer2)
 
 		jugada1 := strings.TrimSpace(string(buffer1[0:n1]))
@@ -44,6 +33,7 @@ func puertoPartida(connection_partida *net.UDPConn) {
 			return
 		}
 
+		//Se envían las jugadas del jugador contrario a la direccion correspondiente
 		_, err = connection_partida.WriteToUDP([]byte(jugada2), addr1)
 		_, err = connection_partida.WriteToUDP([]byte(jugada1), addr2)
 
@@ -60,6 +50,7 @@ func puertoPartida(connection_partida *net.UDPConn) {
 }
 
 func main() {
+	//Servidor en puerto 50002
 	puerto := ":50002"
 	BUFFER := 1024
 	s, err := net.ResolveUDPAddr("udp4", puerto)
@@ -81,10 +72,12 @@ func main() {
 	fmt.Printf("[*] Servidor Cachipun abierto en puerto %s\n", puerto)
 
 	for {
+		//Se lee lo recibido por servidor Intermedio, opciones de jugar o finalizar programa
 		n, addr1, err := connection.ReadFromUDP(buffer)
 
 		fmt.Printf("-> Se recibe la opción %s\n", string(buffer[0:n]))
 
+		// Para esta opcion se asume que el cliente 1 / servidor 1 da la opcion de cerrar
 		if strings.TrimSpace(string(buffer[0:n])) == "2" {
 			mensaje := []byte("OK")
 			_, err = connection.WriteToUDP(mensaje, addr1)
@@ -102,13 +95,14 @@ func main() {
 			}
 
 			if strings.TrimSpace(string(buffer[0:n])) == "1" {
-				//Segundo inicio
+				//Segundo inicio de partida
 				fmt.Println("[*] Segundo jugador solicita jugar")
 
 				rand.Seed(time.Now().UnixNano())
 				disponibilidad := rand.Intn(100)
 				var mensaje []byte
 
+				//Prob del 10% de no estar disponible
 				if disponibilidad <= 9 {
 					mensaje = []byte("NO")
 					_, err = connection.WriteToUDP(mensaje, addr1)
@@ -116,6 +110,7 @@ func main() {
 				} else {
 
 					//Abrir puerto de partida
+					rand.Seed(time.Now().UnixNano())
 					puerto_partida := rand.Intn(41) + 10 //Puertos de 50010 al 50050
 					port := ":500" + strconv.Itoa(puerto_partida)
 					s, err := net.ResolveUDPAddr("udp4", port)
@@ -136,6 +131,7 @@ func main() {
 					//Enviar disponibilidad y puerto
 					disp_port := "OK|localhost|" + "500" + strconv.Itoa(puerto_partida)
 					mensaje = []byte(disp_port)
+					//Enviar a cada conexión la disponibilidad
 					_, err = connection.WriteToUDP(mensaje, addr1)
 					_, err = connection.WriteToUDP(mensaje, addr2)
 					puertoPartida(connection_partida)

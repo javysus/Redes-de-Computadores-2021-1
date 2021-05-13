@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+//Jugada random del bot
 func jugadaBot() (jugada string) {
 	rand.Seed(time.Now().UnixNano())
 	opcion := rand.Intn(3)
@@ -23,11 +24,13 @@ func jugadaBot() (jugada string) {
 	return
 }
 
+//Se realiza y envían las jugadas en el puerto de partida
 func puertoPartida(connection_partida *net.UDPConn) {
 	BUFFER := 1024
 	buffer := make([]byte, BUFFER)
 	defer connection_partida.Close()
 	for {
+		//Se recibe los mensajes "JUGAR" para generar una jugada aleatoria o "FIN" para terminar la partida y cerrar el puerto
 		n, addr, err := connection_partida.ReadFromUDP(buffer)
 		fmt.Printf("-> Se recibe la opción %s\n", string(buffer[0:n]))
 
@@ -54,6 +57,7 @@ func puertoPartida(connection_partida *net.UDPConn) {
 }
 
 func main() {
+	//Servidor en puerto 50002
 	puerto := ":50002"
 	BUFFER := 1024
 	s, err := net.ResolveUDPAddr("udp4", puerto)
@@ -75,6 +79,7 @@ func main() {
 	fmt.Printf("[*] Servidor Cachipun abierto en puerto %s\n", puerto)
 
 	for {
+		//Se lee lo recibido por servidor Intermedio, opciones de jugar o finalizar programa
 		n, addr, err := connection.ReadFromUDP(buffer)
 
 		fmt.Printf("-> Se recibe la opción %s\n", string(buffer[0:n]))
@@ -85,16 +90,21 @@ func main() {
 			fmt.Println("[*] Se cierra servidor Cachipún")
 			return
 		} else if strings.TrimSpace(string(buffer[0:n])) == "1" {
+			//Disponibilidad aleatoria
+			rand.Seed(time.Now().UnixNano())
 			disponibilidad := rand.Intn(100)
+			fmt.Print(disponibilidad)
+
 			var mensaje []byte
 
+			//Probabilidad de 10% de no estar disponible
 			if disponibilidad <= 9 {
 				mensaje = []byte("NO")
+				fmt.Println("[*] Servidor no disponible")
 				_, err = connection.WriteToUDP(mensaje, addr)
 
 			} else {
-
-				//Abrir puerto de partida
+				//Abrir puerto de partida aleatorio
 				rand.Seed(time.Now().UnixNano())
 				puerto_partida := rand.Intn(41) + 10 //Puertos de 50010 al 50050
 				port := ":500" + strconv.Itoa(puerto_partida)
@@ -105,6 +115,7 @@ func main() {
 					return
 				}
 
+				//Crear conexión en el puerto de partida aleatorio
 				connection_partida, err := net.ListenUDP("udp4", s)
 				if err != nil {
 					fmt.Println(err)
