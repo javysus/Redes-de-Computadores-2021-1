@@ -1,0 +1,15 @@
+Terminal 1
+python2.7 pox/pox.py --verbose openflow.spanning_tree --no-flood --hold-down openflow.discovery forwarding.red1
+
+Terminal 2
+sudo mn --custom ~/mininet/custom/topologia.py --topo Red1 --controller remote --switch ovsk --mac
+
+
+Red 2
+
+python2.7 pox/pox.py --verbose openflow.spanning_tree --no-flood --hold-down openflow.discovery forwarding.red2
+
+Terminal 2
+sudo mn --custom ~/mininet/custom/topologia.py --topo Red2 --controller remote --switch ovsk --mac
+mininet> h5 python -m SimpleHTTPServer 80 &
+mininet> h1 wget -O - h5
