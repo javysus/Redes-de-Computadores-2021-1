@@ -154,8 +154,6 @@ class LearningSwitch (object):
     else:
       port = self.macToPort[packet.dst]
 
-      
-          
       if packet.dst not in self.macToPort: # 4
         flood("Port for %s unknown -- flooding" % (packet.dst,)) # 4a
       else:
@@ -187,7 +185,6 @@ class LearningSwitch (object):
               port = 13 #Puerto entre switch 3 y 4
 
         elif(event.port == 15 or event.port == 16 or event.port == 14):
-          print("Hola puerto")
           if(str(packet.dst) == "00:00:00:00:00:07" or str(packet.dst) == "00:00:00:00:00:08"):
               port = self.macToPort[packet.dst]
           else:
@@ -204,8 +201,9 @@ class LearningSwitch (object):
           return
         # 6
 
-        log.debug("Paquete entra por puerto %i" % (event.port))
-        log.debug("Paquete sale por puerto %i" % (port))
+        print("------------------------------")
+        print("Paquete entra por puerto "+ str(event.port))
+        print("Paquete sale por puerto "+ str(port))
 
         msg = of.ofp_flow_mod()
         msg.match = of.ofp_match.from_packet(packet, event.port)
