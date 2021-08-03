@@ -35,14 +35,14 @@ class Red1( Topo ):
         self.addLink(host5,switch3,0,5)
         self.addLink(host6,switch3,0,6)
 
-        self.addLink(switch1,switch2,7,8)
-        self.addLink(switch2,switch3,9,10)
+        self.addLink(switch1,switch2,7,8) #Entre s1 y s2
+        self.addLink(switch2,switch3,9,10) #Entre s2 y s3
 
-        self.addLink(switch1,switch4,11,12)
-        self.addLink(switch3,switch4,13,14)
+        self.addLink(switch1,switch4,11,12) #Entre s1 y s4
+        self.addLink(switch3,switch4,13,14) #Entre s3 y s4
 
         self.addLink(switch4,host7,15,0)
-        self.addLink(switch4,host8,17,0)
+        self.addLink(switch4,host8,16,0)
 
 class Red2( Topo ):
     "Simple topology example."

@@ -154,45 +154,99 @@ class LearningSwitch (object):
     else:
       port = self.macToPort[packet.dst]
 
-      
-          
       if packet.dst not in self.macToPort: # 4
         flood("Port for %s unknown -- flooding" % (packet.dst,)) # 4a
       else:
-        direcciones = ['00:00:00:00:00:01','00:00:00:00:00:02','00:00:00:00:00:03','00:00:00:00:00:04','00:00:00:00:00:05','00:00:00:00:00:06','00:00:00:00:00:07','00:00:00:00:00:08']
+        direcciones = ['00:00:00:00:00:01','00:00:00:00:00:02','00:00:00:00:00:03','00:00:00:00:00:04','00:00:00:00:00:05','00:00:00:00:00:06']
       
+        print("------------------------------")
+        print("Direccion de fuente: "+str(packet.src))
+        print("Direccion de destino: "+str(packet.dst))
+
+        regla = [str(packet.src),str(packet.dst)]
+        
         #Si el paquete no proviene de los hosts conocidos
-        if(str(packet.dst) not in direcciones):
+        if(str(packet.src) not in direcciones):
           drop()
           return
 
         #Si el paquete no se dirige a algun host conocido
-        if(str(packet.src) not in direcciones):
+        if(str(packet.dst) not in direcciones):
           drop()
           return
-        if(event.port == 1 or event.port == 2 or event.port == 11):
+
+        #Reglas permitidas: Comunicacion entre hosts del s1 al host 5 y viceversa, y entre host del s2 al host 6 y viceversa
+        rules = [['00:00:00:00:00:01','00:00:00:00:00:05'], ['00:00:00:00:00:02','00:00:00:00:00:05'], ['00:00:00:00:00:03','00:00:00:00:00:06'], ['00:00:00:00:00:04','00:00:00:00:00:06'],
+        ['00:00:00:00:00:05','00:00:00:00:00:01'],['00:00:00:00:00:05','00:00:00:00:00:02'],['00:00:00:00:00:06','00:00:00:00:00:03'], '00:00:00:00:00:06','00:00:00:00:00:04']
+
+
+        #Bloquear
+        if regla not in rules:
+          print("Conexion no permitida")
+          drop()
+          return
+  
+        tcp_found = packet.find('tcp') #Mensaje TCP encontrado
+
+        #Mensajes que llegan a servidores (bloquear si no son HTTP)
+        if(str(packet.dst) in ['00:00:00:00:00:05','00:00:00:00:00:06']):
+          if(tcp_found and (tcp_found.dstport == 80)): #Mensaje TCP en puerto 80 de HTTP
+            print("Mensaje HTTP encontrado")
+          """else:
+            drop()
+            return"""
+
+        """if (event.port == 5 or event.port == 6):
+          print("Puerto de servidor")
+          if(str(packet.dst) in ['00:00:00:00:00:05','00:00:00:00:00:06']):
+            if(tcp_found and (tcp_found.dstport == 80)): #Mensaje TCP en puerto 80 de HTTP
+              print("Mensaje HTTP encontrado")
+            else:
+              print("No permitido: Mensaje no es HTTP")
+              drop()
+              return"""
+
+        if(event.port == 1 or event.port == 2 or event.port == 18 or event.port == 8):
           if(str(packet.dst) == "00:00:00:00:00:01" or str(packet.dst) == "00:00:00:00:00:02"):
               port = self.macToPort[packet.dst]
           else:
-              port = 7 #Puerto entre switch 1 y switch 2
-        elif(event.port == 3 or event.port == 4 or event.port == 8):
+              port = 9 #Salida puerto entre switch 1 y 5
+        elif(event.port == 3 or event.port == 4 or event.port == 16):
           if(str(packet.dst) == "00:00:00:00:00:03" or str(packet.dst) == "00:00:00:00:00:04"):
               port = self.macToPort[packet.dst]
           else:
-              port = 9 #Puerto entre switch 2 y 3
+              port = 7 #Salida puerto entre switch 2 y 1
         elif(event.port == 5 or event.port == 6 or event.port == 10):
           if(str(packet.dst) == "00:00:00:00:00:05" or str(packet.dst) == "00:00:00:00:00:06"):
-              port = self.macToPort[packet.dst]
+              if(tcp_found and (tcp_found.dstport == 80)): #Mensaje TCP en puerto 80 de HTTP
+                print("Mensaje HTTP llega a servidor")
+                port = self.macToPort[packet.dst]
+              else:
+                print("No permitido: Mensaje no es HTTP")
+                drop()
+                return
           else:
-              port = 13 #Puerto entre switch 3 y 4
+              port = 11 #Salida puerto entre switch 5 y 3
 
-        elif(event.port == 15 or event.port == 16 or event.port == 14):
-          print("Hola puerto")
-          if(str(packet.dst) == "00:00:00:00:00:07" or str(packet.dst) == "00:00:00:00:00:08"):
-              port = self.macToPort[packet.dst]
-          else:
-              port = 12 #Puerto entre switch 4 y 1
-        else:
+        #Switch 3
+        elif(event.port == 12):
+          #Salida a switch 1
+          if(str(packet.dst) == "00:00:00:00:00:01" or str(packet.dst) == "00:00:00:00:00:02"):
+            port = 17
+          #Salida a switch 4
+          elif(str(packet.dst) == "00:00:00:00:00:03" or str(packet.dst) == "00:00:00:00:00:04"):
+            port = 13
+        #Switch 4
+        elif(event.port == 14):
+          port = 15
+        elif(event.port == 10):
+          #Hosts de switch 1 van a host 5
+          if(str(packet.src) == "00:00:00:00:00:01" or str(packet.src) == "00:00:00:00:00:02"):
+            port = 5
+          #Hosts de switch 2 van a host 6
+          elif(str(packet.src) == "00:00:00:00:00:03" or str(packet.src) == "00:00:00:00:00:04"):
+            port = 6
+        else: 
           port = self.macToPort[packet.dst]
 
         
@@ -204,9 +258,11 @@ class LearningSwitch (object):
           return
         # 6
 
-        log.debug("Paquete entra por puerto %i" % (event.port))
-        log.debug("Paquete sale por puerto %i" % (port))
+        #log.debug("Paquete entra por puerto %i" % (event.port))
+        #log.debug("Paquete sale por puerto %i" % (port))
 
+        print("Paquete entra por puerto "+ str(event.port))
+        print("Paquete sale por puerto "+ str(port))
         msg = of.ofp_flow_mod()
         msg.match = of.ofp_match.from_packet(packet, event.port)
         msg.idle_timeout = 10
