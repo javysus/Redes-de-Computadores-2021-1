@@ -1,15 +1,33 @@
-Terminal 1
+Instrucciones:
+1. Tener el archivo de tolopogía, topologia.py en la carpeta /mininet/custom
+2. Tener los archivos red1.py, red1_link.py, antihorario.py y red2.py en /mininet/(...)
+
+
+
+Para red 1:
+
+Terminal 1 (Para correr el controlador)
 python2.7 pox/pox.py --verbose openflow.spanning_tree --no-flood --hold-down openflow.discovery forwarding.red1
 
-Terminal 2
+Terminal 2 (Para correr mininet y tolopogía)
 sudo mn --custom ~/mininet/custom/topologia.py --topo Red1 --controller remote --switch ovsk --mac
 
+Variantes de red 1, realizar el mismo procedimiento pero en terminal 1 ejecutar,
+Para la instancia de link caido:
+python2.7 pox/pox.py --verbose openflow.spanning_tree --no-flood --hold-down openflow.discovery forwarding.red1_link
 
-Red 2
+Para la instancia antihorario:
+python2.7 pox/pox.py --verbose openflow.spanning_tree --no-flood --hold-down openflow.discovery forwarding.antihorario
 
+Para red 2:
+
+Terminal 1 (Para correr el controlador)
 python2.7 pox/pox.py --verbose openflow.spanning_tree --no-flood --hold-down openflow.discovery forwarding.red2
 
-Terminal 2
+Terminal 2 (Para correr mininet y topología)
 sudo mn --custom ~/mininet/custom/topologia.py --topo Red2 --controller remote --switch ovsk --mac
+Dentro de mininet, ejecutar lo siguiente para los hosts que harán de server
 mininet> h5 python -m SimpleHTTPServer 80 &
+mininet> h6 python -m SimpleHTTPServer 80 &
+Para hacer las peticiones GET:
 mininet> h1 wget -O - h5
